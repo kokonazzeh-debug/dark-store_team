@@ -1,22 +1,151 @@
+/* =====================================================
+   منطق مشترك: اللغة، السلة، الطلبات، الأسعار، الإدارة
+   ===================================================== */
+
+/* ---------- اللغة ---------- */
+let lang = localStorage.getItem("darc_lang") || "ar";
+
+function t(key) {
+  const dict = I18N[lang] || I18N.ar;
+  return dict[key] || I18N.ar[key] || key;
+}
+
+function currency() {
+  return lang === "en" ? SETTINGS.currencyEn : SETTINGS.currency;
+}
+
+function announcementText() {
+  const ov = JSON.parse(localStorage.getItem("darc_announce") || "null");
+  if (ov && ov.ar && ov.en) return lang === "ar" ? ov.ar : ov.en;
+  return lang === "ar" ? SETTINGS.announcement : SETTINGS.announcementEn;
+}
+
+function formatPrice(n) {
+  const v = n.toLocaleString(lang === "en" ? "en-US" : "ar-EG");
+  return `${v} ${currency()}`;
+}
+
+function applyI18n() {
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  document.querySelectorAll("[data-i18n]").forEach((el) => (el.textContent = t(el.dataset.i18n)));
+  document.querySelectorAll("[data-i18n-ph]").forEach((el) => (el.placeholder = t(el.dataset.i18nPh)));
+  const langBtn = document.getElementById("langBtn");
+  if (langBtn) langBtn.textContent = t("nav.lang");
+  const ann = document.getElementById("announcement");
+  if (ann) ann.textContent = announcementText();
+  document.title = (lang === "ar" ? SETTINGS.name : SETTINGS.nameEn) + " — " + (lang === "ar" ? "متجر شحن الألعاب" : "Game Top-Up Store");
+  document.querySelectorAll("[data-lang-rewrite]").forEach(() => {});
+  if (typeof afterLangChange === "function") afterLangChange();
+}
+
+function toggleLang() {
+  lang = lang === "ar" ? "en" : "ar";
+  localStorage.setItem("darc_lang", lang);
+  applyI18n();
+  if (typeof renderAll === "function") renderAll();
+}
+
+/* ---------- الأسعار (التعديل من الإدارة) ---------- */
+const PRICE_OVERRIDES = JSON.parse(localStorage.getItem("darc_prices") || "{}");
+
+function getPrice(pkg) { return Number(PRICE_OVERRIDES[pkg.key]) || pkg.price; }
+function getOldPrice(pkg) {
+  if (PRICE_OVERRIDES[pkg.key]) return Math.round(getPrice(pkg) * 1.25);
+  return pkg.oldPrice;
+}
+function pkgKey(gameId, amount) { return gameId + "_" + amount; }
+function pkgOff(pkg) {
+  const op = getOldPrice(pkg);
+  if (!op) return 0;
+  return Math.round(((op - getPrice(pkg)) / op) * 100);
+}
+
+/* ---------- السلة ---------- */
 let cart = JSON.parse(localStorage.getItem("darc_cart") || "[]");
-let wishlist = JSON.parse(localStorage.getItem("darc_wish") || "[]");
+let orders = JSON.parse(localStorage.getItem("darc_orders") || "[]");
 
 function saveCart() { localStorage.setItem("darc_cart", JSON.stringify(cart)); }
-function saveWish() { localStorage.setItem("darc_wish", JSON.stringify(wishlist)); }
+function saveOrders() { localStorage.setItem("darc_orders", JSON.stringify(orders)); }
 
-function showToast(msg, type = "ok") {
-  const box = document.querySelector(".toasts");
-  if (!box) return;
-  const t = document.createElement("div");
-  t.className = `toast ${type}`;
-  t.innerHTML = `<span class="dot"></span><span>${msg}</span>`;
-  box.appendChild(t);
-  setTimeout(() => t.remove(), 3200);
+function cartCount() { return cart.reduce((s, i) => s + i.qty, 0); }
+function cartTotal() {
+  return cart.reduce((s, i) => {
+    const pkg = { key: pkgKey(i.game, i.amount) };
+    return s + getPrice(pkg) * i.qty;
+  }, 0);
 }
 
-function cartCount() {
-  return cart.reduce((s, i) => s + i.qty, 0);
+function addTopUp(gameId, amount, playerId, qty = 1) {
+  const g = getGame(gameId);
+  const key = pkgKey(gameId, amount);
+  const idx = cart.findIndex((i) => i.key === key && i.playerId === playerId);
+  if (idx >= 0) cart[idx].qty += qty;
+  else cart.push({ key, game: gameId, amount, playerId, qty });
+  saveCart();
+  updateCartBadge();
+  renderCart();
+  showToast(t("widget.success"));
 }
+
+function changeQty(key, playerId, delta) {
+  const idx = cart.findIndex((i) => i.key === key && i.playerId === playerId);
+  if (idx < 0) return;
+  cart[idx].qty = Math.max(1, cart[idx].qty + delta);
+  saveCart();
+  updateCartBadge();
+  renderCart();
+}
+
+function removeFromCart(key, playerId) {
+  cart = cart.filter((i) => !(i.key === key && i.playerId === playerId));
+  saveCart();
+  updateCartBadge();
+  renderCart();
+}
+
+function unitOf(gameId) {
+  return { pubg: t("unit.uc"), freefire: t("unit.dm"), mlbb: t("unit.bp"), codm: t("unit.cp"), coc: t("unit.gold"), hok: t("unit.gem"), genshin: t("unit.gem"), fcm: t("unit.gob"), roblox: t("unit.robux"), royale: t("unit.gob"), motos: t("unit.goldCoin"), brawl: t("unit.gem") }[gameId] || "";
+}
+
+/* ---------- عرض السلة ---------- */
+function renderCart() {
+  const list = document.querySelector(".drawer-body");
+  if (!list) return;
+  if (!cart.length) {
+    list.innerHTML = `<div class="empty-cart"><div class="big">🛒</div><p>${t("cart.empty")}</p><p style="font-size:13px;margin-top:6px">${t("cart.emptySub")}</p></div>`;
+  } else {
+    list.innerHTML = cart.map((i) => {
+      const g = getGame(i.game);
+      const pkg = { key: i.key };
+      return `
+      <div class="cart-item">
+        <span class="ci-badge" style="background:linear-gradient(135deg,${g.c1},${g.c2})">${g.icon}</span>
+        <div class="ci-info">
+          <div class="ci-name">${t(g.i18n)} — ${i.amount} ${unitOf(i.game)}</div>
+          <div class="ci-id">🆔 ${i.playerId}</div>
+          <div class="ci-price">${formatPrice(getPrice(pkg))}</div>
+        </div>
+        <div class="ci-qty">
+          <button onclick="changeQty('${i.key}','${i.playerId}',-1)">−</button>
+          <span>${i.qty}</span>
+          <button onclick="changeQty('${i.key}','${i.playerId}',1)">+</button>
+        </div>
+        <button class="ci-remove" onclick="removeFromCart('${i.key}','${i.playerId}')">✕</button>
+      </div>`;
+    }).join("");
+  }
+  const foot = document.querySelector(".drawer-foot");
+  if (foot) {
+    const empty = !cart.length;
+    foot.innerHTML = `
+      <div class="sum-row total"><span>${t("cart.total")}</span><b>${formatPrice(cartTotal())}</b></div>
+      <button class="btn btn-primary btn-lg ${empty ? "" : "checkout-go"}" ${empty ? "disabled" : ""}>${t("cart.checkout")} ←</button>`;
+  }
+}
+
+function openCart() { renderCart(); document.getElementById("drawer").classList.add("open"); document.getElementById("overlay").classList.add("open"); }
+function closeCart() { document.getElementById("drawer").classList.remove("open"); document.getElementById("overlay").classList.remove("open"); }
 
 function updateCartBadge() {
   document.querySelectorAll(".cart-count").forEach((el) => {
@@ -26,152 +155,91 @@ function updateCartBadge() {
   });
 }
 
-function addToCart(id, qty = 1) {
-  const p = getProduct(id);
-  if (!p) return;
-  if (p.stock === 0) { showToast("المنتج غير متوفر حاليًا", "err"); return; }
-  const idx = cart.findIndex((i) => i.id === p.id);
-  if (idx >= 0) {
-    cart[idx].qty = Math.min(cart[idx].qty + qty, Math.max(p.stock, cart[idx].qty + qty));
-  } else {
-    cart.push({ id: p.id, qty: Math.min(qty, p.stock || 1) });
-  }
-  saveCart();
-  updateCartBadge();
-  renderCart();
-  showToast("تمت إضافة المنتج إلى السلة 🛒");
+/* ---------- Toast ---------- */
+function showToast(msg, type = "ok") {
+  const box = document.querySelector(".toasts");
+  if (!box) return;
+  const tEl = document.createElement("div");
+  tEl.className = `toast ${type}`;
+  tEl.innerHTML = `<span class="dot"></span><span>${msg}</span>`;
+  box.appendChild(tEl);
+  setTimeout(() => tEl.remove(), 3400);
 }
 
-function changeQty(id, delta) {
-  const p = getProduct(id);
-  const idx = cart.findIndex((i) => i.id === id);
-  if (idx < 0) return;
-  const max = p ? p.stock : 99;
-  cart[idx].qty = Math.min(Math.max(cart[idx].qty + delta, 1), max);
-  if (cart[idx].qty <= 0) cart.splice(idx, 1);
-  saveCart();
-  updateCartBadge();
-  renderCart();
-}
-
-function removeFromCart(id) {
-  cart = cart.filter((i) => i.id !== id);
-  saveCart();
-  updateCartBadge();
-  renderCart();
-}
-
-function cartTotal() {
-  return cart.reduce((s, i) => {
-    const p = getProduct(i.id);
-    return s + (p ? p.price * i.qty : 0);
-  }, 0);
-}
-
-function toggleWish(id) {
-  const p = getProduct(id);
-  if (!p) return;
-  const idx = wishlist.indexOf(id);
-  if (idx >= 0) {
-    wishlist.splice(idx, 1);
-    showToast("تمت الإزالة من المفضلة");
-  } else {
-    wishlist.push(id);
-    showToast("تمت الإضافة إلى المفضلة ♥");
-  }
-  saveWish();
-  renderWishButtons();
-}
-
-function renderWishButtons() {
-  document.querySelectorAll(".product-wish").forEach((btn) => {
-    btn.classList.toggle("active", wishlist.includes(Number(btn.dataset.id)));
-  });
-}
-
-function renderCart() {
-  const list = document.querySelector(".drawer-body");
-  if (!list) return;
-  if (!cart.length) {
-    list.innerHTML = `<div class="empty-cart"><div class="big">🛒</div><p>السلة فارغة</p><p style="font-size:13px;margin-top:6px">ابدأ التسوق وأضف منتجات مميزة</p></div>`;
-  } else {
-    list.innerHTML = cart.map((i) => {
-      const p = getProduct(i.id);
-      if (!p) return "";
-      return `
-      <div class="cart-item">
-        <img src="${p.images[0]}" alt="${p.name}">
-        <div class="ci-info">
-          <div class="ci-name">${p.name}</div>
-          <div class="ci-sub">${getCategory(p.category)?.name || ""}</div>
-          <div class="ci-price">${formatPrice(p.price)}</div>
+/* ---------- حسابي (طلبات المستخدم) ---------- */
+function openAccount() {
+  const o = orders.slice(0, 8);
+  const list = o.length
+    ? o.map((ord) => `
+      <div class="news-item" style="cursor:default">
+        <span class="nicon">${ord.status === "completed" ? "✅" : ord.status === "cancelled" ? "❌" : "⏳"}</span>
+        <div>
+          <b>${ord.items.map((it) => `${t(getGame(it.game)?.i18n || "")} ${it.amount} × ${it.qty}`).join(" + ")}</b>
+          <span>${t("acct.id")}: ${ord.id} • ${ord.date}</span>
+          <div style="margin-top:4px"><span class="status ${ord.status}">${t("acct.status." + ord.status)}</span></div>
         </div>
-        <div class="ci-qty">
-          <button onclick="changeQty(${p.id},-1)">−</button>
-          <span>${i.qty}</span>
-          <button onclick="changeQty(${p.id},1)">+</button>
-        </div>
-        <button class="ci-remove" onclick="removeFromCart(${p.id})">حذف</button>
-      </div>`;
-    }).join("");
-  }
-  const foot = document.querySelector(".drawer-foot");
-  if (foot) {
-    const empty = !cart.length;
-    foot.innerHTML = `
-      <div class="sum-row total"><span>الإجمالي</span><b>${formatPrice(cartTotal())}</b></div>
-      <button class="btn btn-primary ${empty ? "" : "checkout-btn"}" ${empty ? "disabled" : ""}>إتمام الطلب</button>`;
-  }
-  updateCheckoutSummary();
+      </div>`).join("")
+    : `<div class="empty-cart"><div class="big">📦</div><p>${t("acct.empty")}</p></div>`;
+  document.getElementById("acctList").innerHTML = list;
+  openModal("acctModal");
 }
 
-function updateCheckoutSummary() {
-  const sum = document.querySelector(".checkout-items");
-  const total = document.querySelector(".checkout-total");
-  if (sum) {
-    sum.innerHTML = cart.map((i) => {
-      const p = getProduct(i.id);
-      if (!p) return "";
-      return `<div class="ci"><span>${p.name} × ${i.qty}</span><b>${formatPrice(p.price * i.qty)}</b></div>`;
-    }).join("");
-  }
-  if (total) {
-    const t = document.querySelector(".checkout-total-value");
-    if (t) t.textContent = formatPrice(cartTotal());
+/* ---------- الإدارة المخفية ---------- */
+function openAdminGate() {
+  const pass = prompt(t("admin.gate") || "أدخل كلمة مرور الإدارة:");
+  if (pass === null) return;
+  if (pass === adminPass()) {
+    sessionStorage.setItem("darc_admin_ok", "1");
+    window.location.href = "admin.html";
+  } else {
+    showToast("كلمة المرور غير صحيحة", "err");
   }
 }
 
-function openCart() {
-  renderCart();
-  document.getElementById("drawer").classList.add("open");
-  document.getElementById("overlay").classList.add("open");
-}
-function closeCart() {
-  document.getElementById("drawer").classList.remove("open");
-  document.getElementById("overlay").classList.remove("open");
+function adminPass() {
+  return localStorage.getItem("darc_admin_pass") || "admin123";
 }
 
+/* ---------- Modal ---------- */
+function openModal(id) { document.getElementById(id).classList.add("open"); }
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+
+/* ---------- الأحداث العامة ---------- */
 function bindGlobalEvents() {
   document.addEventListener("click", (e) => {
-    const add = e.target.closest(".add-to-cart");
-    if (add) {
-      e.preventDefault();
-      addToCart(Number(add.dataset.id));
-    }
-    const wish = e.target.closest(".product-wish");
-    if (wish) toggleWish(Number(wish.dataset.id));
-    const cc = e.target.closest(".checkout-btn");
-    if (cc) window.location.href = "checkout.html";
+    const checkout = e.target.closest(".checkout-go");
+    if (checkout) window.location.href = "checkout.html";
+
+    const overlay = e.target.closest("#overlay");
+    if (overlay) closeCart();
+
     const ham = e.target.closest(".hamburger");
-    if (ham) document.querySelector(".nav-links").classList.toggle("open");
+    if (ham) document.querySelector(".nav-links")?.classList.toggle("open");
+
+    const closeX = e.target.closest("[data-close]");
+    if (closeX) closeModal(closeX.dataset.close);
+
+    const dot = e.target.closest("#adminDot");
+    if (dot) openAdminGate();
   });
 
-  document.getElementById("overlay")?.addEventListener("click", closeCart);
+  document.getElementById("langBtn")?.addEventListener("click", toggleLang);
+  document.getElementById("acctBtn")?.addEventListener("click", openAccount);
 
   const navSearch = document.querySelector(".nav-search");
   navSearch?.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && navSearch.value.trim()) {
-      window.location.href = "products.html?q=" + encodeURIComponent(navSearch.value.trim());
+      const inp = document.getElementById("searchInput");
+      if (inp) { inp.value = navSearch.value.trim(); inp.dispatchEvent(new Event("input")); }
+      document.getElementById("gamesSection")?.scrollIntoView({ behavior: "smooth" });
+    }
+  });
+
+  /* الوصول المخفي: Ctrl+Shift+A */
+  document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey && e.shiftKey && (e.key === "A" || e.key === "a")) {
+      e.preventDefault();
+      window.location.href = "admin.html";
     }
   });
 
@@ -183,9 +251,9 @@ function bindGlobalEvents() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  applyI18n();
   updateCartBadge();
   renderCart();
-  renderWishButtons();
   bindGlobalEvents();
   const year = document.getElementById("year");
   if (year) year.textContent = new Date().getFullYear();

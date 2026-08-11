@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم — دارك ستور</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="admin-wrap">
+
+  <!-- شاشة الدخول -->
+  <div class="modal-overlay open" id="loginScreen">
+    <div class="modal admin-login">
+      <span class="lock">🔐</span>
+      <h1 data-i18n="admin.login">تسجيل دخول الإدارة</h1>
+      <p data-i18n="admin.loginSub">هذه المنطقة مخصصة للمسؤول فقط</p>
+      <div class="form-group">
+        <label data-i18n="admin.password">كلمة المرور</label>
+        <input id="loginPass" type="password" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary btn-lg" style="width:100%" id="loginBtn" data-i18n="admin.enter">دخول</button>
+      <p style="font-size:12px;color:var(--text-3);margin-top:14px">Default: admin123</p>
+    </div>
+  </div>
+
+  <!-- لوحة التحكم -->
+  <div id="dashboard" style="display:none">
+    <nav class="admin-nav">
+      <div class="container admin-nav-inner">
+        <a href="index.html" class="logo"><span class="logo-badge">🎮</span> <span>دارك ستور<small>ADMIN</small></span></a>
+        <div style="margin-inline-start:auto;display:flex;gap:10px">
+          <button class="btn-icon lang-btn" id="langBtn">English</button>
+          <button class="btn btn-ghost admin-logout" id="logoutBtn" data-i18n="admin.logout">خروج</button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="page-title">
+        <h1>🛠️ <span data-i18n="admin.dashboard">لوحة التحكم</span></h1>
+      </div>
+
+      <div class="stats" id="stats"></div>
+
+      <div class="admin-tabs" id="adminTabs">
+        <button class="admin-tab active" data-tab="orders" data-i18n="admin.tabs.orders">الطلبات</button>
+        <button class="admin-tab" data-tab="prices" data-i18n="admin.tabs.prices">إدارة الأسعار</button>
+        <button class="admin-tab" data-tab="settings" data-i18n="admin.tabs.settings">الإعدادات</button>
+      </div>
+
+      <!-- الطلبات -->
+      <div class="admin-panel" id="tab-orders">
+        <div id="ordersList"></div>
+      </div>
+
+      <!-- الأسعار -->
+      <div class="admin-panel" id="tab-prices" style="display:none">
+        <div id="pricesEditor"></div>
+        <div class="admin-save">
+          <button class="btn btn-primary btn-lg" id="savePricesBtn" data-i18n="admin.save">حفظ التغييرات</button>
+        </div>
+      </div>
+
+      <!-- الإعدادات -->
+      <div class="admin-panel" id="tab-settings" style="display:none">
+        <div class="panel">
+          <h3>🔑 <span data-i18n="admin.pwd.title">تغيير كلمة المرور</span></h3>
+          <div class="form-group"><label data-i18n="admin.pwd.new">كلمة المرور الجديدة</label><input id="newPass" type="password"></div>
+          <button class="btn btn-ghost" id="savePassBtn" data-i18n="admin.pwd.save">تحديث كلمة المرور</button>
+        </div>
+        <div class="panel">
+          <h3>📢 <span data-i18n="admin.announce.title">شريط التنبيهات</span></h3>
+          <div class="form-group"><label data-i18n="admin.announce.ar">النص بالعربية</label><input id="announceAr" type="text"></div>
+          <div class="form-group"><label data-i18n="admin.announce.en">النص بالإنجليزية</label><input id="announceEn" type="text"></div>
+          <button class="btn btn-ghost" id="saveAnnounceBtn" data-i18n="admin.announce.save">حفظ الشريط</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toasts"></div>
+
+  <script src="config/data.js"></script>
+  <script src="config/i18n.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
