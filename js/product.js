@@ -34,8 +34,12 @@ function renderProduct() {
   const pkgs = getPackages(g.id);
   document.title = t(g.i18n) + " — " + storeName();
   document.getElementById("crumbGame").textContent = t(g.i18n);
-  document.getElementById("pgImgSrc").src = g.img;
-  document.getElementById("pgImgSrc").alt = t(g.i18n);
+  const imgEl = document.getElementById("pgImgSrc");
+  imgEl.src = gameImg(g) || gameBanner(g);
+  imgEl.onerror = () => imgOnError(imgEl, g.id);
+  imgEl.alt = t(g.i18n);
+  const pgImgBox = document.getElementById("pgImg");
+  if (pgImgBox) { pgImgBox.style.setProperty("--g1", g.c1); pgImgBox.style.setProperty("--g2", g.c2); }
   document.getElementById("pgEmoji").textContent = g.icon;
   document.getElementById("pgTitle").textContent = t(g.i18n);
   document.getElementById("pgStars").innerHTML = UI.stars(g.rating, 16);
@@ -43,6 +47,8 @@ function renderProduct() {
   const cat = getCategory((g.cats || [])[0]);
   document.getElementById("pgCat").textContent = cat ? cat.icon + " " + t(cat.i18n) : "🎮";
   document.getElementById("pgRating").textContent = "★ " + g.rating;
+  const gxLink = document.getElementById("pgGxLink");
+  if (gxLink) gxLink.href = `game.html?game=${g.id}`;
 
   renderPkgs();
   renderServer();
@@ -224,7 +230,14 @@ function renderAll() {
   renderCart();
 }
 
+function afterLangChange() {
+  renderProduct();
+  renderFaqTab();
+  luRefreshAll();
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   readQuery();
   renderAll();
+  bindPlayerLookup(pgGame ? pgGame.id : "pubg", document.getElementById("pgPlayerId"), document.getElementById("pgLookup"));
 });

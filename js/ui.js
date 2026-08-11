@@ -100,9 +100,9 @@ const UI = {
     const favCount = getFavs().length;
     const links = [
       { href: "index.html", key: "nav.home", active: page === "index" },
-      { href: "index.html#games", key: "nav.games", active: page === "product" },
+      { href: "index.html#games", key: "nav.games", active: page === "product" || page === "game" },
       { href: "index.html?cat=cards#games", key: "nav.cards", active: false },
-      { href: "index.html?cat=services#games", key: "nav.services", active: false },
+      { href: "services.html", key: "nav.services", active: page === "services" },
       { href: "index.html#flash", key: "nav.offers", active: false },
       { href: "cart.html", key: "nav.store", active: page === "cart" },
       { href: "tickets.html", key: "nav.help", active: page === "tickets" || page === "ticket" },
@@ -135,6 +135,9 @@ const UI = {
             <button class="icon-btn" id="navProfileBtn" aria-label="${escStr(t("nav.profile"))}" title="${escStr(t("nav.profile"))}">
               ${UI_ICONS.user}
             </button>
+            <button class="icon-btn snd-toggle" id="soundBtn" aria-label="${escStr(t(SND ? "snd.on" : "snd.on"))}" title="${escStr(t(SND && SND.muted ? "snd.off" : "snd.on"))}">
+              <span class="snd-ic">${SND && SND.muted ? "🔇" : "🔊"}</span>
+            </button>
             <button class="lang-pill" id="langBtn" aria-label="Language">English</button>
             <button class="icon-btn hamburger" aria-label="${escStr(t("nav.menu"))}">${UI_ICONS.menu}</button>
           </div>
@@ -155,6 +158,7 @@ const UI = {
           <button class="icon-btn" id="mFavs">${UI_ICONS.heart}</button>
           <button class="icon-btn" id="mNotifs">${UI_ICONS.bell}</button>
           <button class="icon-btn cart-btn">${UI_ICONS.cart}</button>
+          <button class="icon-btn snd-toggle" id="mSound" title="${escStr(t(SND && SND.muted ? "snd.off" : "snd.on"))}">${SND && SND.muted ? "🔇" : "🔊"}</button>
           <button class="icon-btn" id="mProfile">${UI_ICONS.user}</button>
           <button class="icon-btn" id="mLang">${UI_ICONS.settings}</button>
         </div>
@@ -184,6 +188,7 @@ const UI = {
               <a class="f-link" href="index.html#games" data-i18n="nav.games"></a>
               <a class="f-link" href="index.html#flash" data-i18n="nav.offers"></a>
               <a class="f-link" href="cart.html" data-i18n="nav.store"></a>
+              <a class="f-link" href="services.html" data-i18n="nav.services"></a>
             </div>
             <div>
               <h4 data-i18n="footer.support"></h4>

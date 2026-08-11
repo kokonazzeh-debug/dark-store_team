@@ -226,7 +226,7 @@ function gamesTabHTML() {
       const en = gameEnabled(g.id);
       return `
       <div class="game-manage-card">
-        <div class="gm-img" style="--g1:${g.c1};--g2:${g.c2}"><img src="${g.img}" alt="" loading="lazy" onerror="this.remove()"></div>
+        <div class="gm-img" style="--g1:${g.c1};--g2:${g.c2}"><img src="${gameImg(g)}" alt="" loading="lazy" onerror="imgOnError(this, '${g.id}')"></div>
         <div class="gm-info">
           <b>${g.icon} ${escStr(t(g.i18n))}</b>
           <span>${(g.cats || []).map((c) => t("cat." + c)).join(" • ")} — ${t("cat.popular")}: ${pop ? "✓" : "✕"} • ${t("cat.new")}: ${isNew ? "✓" : "✕"}</span>

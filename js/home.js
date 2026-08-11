@@ -13,24 +13,29 @@ let ready = false;
 function renderSlider() {
   const el = document.getElementById("slider");
   if (!el) return;
+  const heroArts = [
+    genCinematicArt("heroA", 1280, 720, "#7C3AED", "#38bdf8"),
+    genCinematicArt("heroB", 1280, 720, "#A855F7", "#f97316"),
+    genCinematicArt("heroC", 1280, 720, "#22d3ee", "#7C3AED"),
+  ];
   const slides = [
     {
       title: `<span>${t("hero.titleA")}</span><br><span class="grad">${t("hero.titleB")}</span>`,
       sub: t("hero.sub"), tag: t("hero.tag"),
       cta: t("hero.cta"), cta2: t("hero.cta2"), go: "#topupWidget", go2: "#games",
-      img: SETTINGS.heroImages[0], art: "🎮",
+      img: heroArts[0], art: "🎮",
     },
     {
       title: `<span>${t("hero.s2.title")}</span>`,
       sub: t("hero.s2.sub"), tag: t("flash.title"),
       cta: t("hero.s2.cta"), cta2: t("hero.cta2"), go: "#flash", go2: "#games",
-      img: SETTINGS.heroImages[1], art: "⚡",
+      img: heroArts[1], art: "⚡",
     },
     {
       title: `<span>${t("hero.s3.title")}</span>`,
       sub: t("hero.s3.sub"), tag: t("hero.tag"),
       cta: t("hero.s3.cta"), cta2: t("hero.cta2"), go: "#topupWidget", go2: "#games",
-      img: SETTINGS.heroImages[2], art: "🚀",
+      img: heroArts[2], art: "🚀",
     },
   ];
   const top = enabledGames().slice(0, 4);
@@ -123,18 +128,19 @@ function gameCardHTML(g) {
   }).join("");
   const fav = isFav(g.id);
   return `
-  <div class="game-card reveal" data-game="${g.id}" tabindex="0" role="link" aria-label="${escStr(t(g.i18n))}">
+  <div class="game-card reveal" data-game="${g.id}" tabindex="0" role="link" aria-label="${escStr(t(g.i18n))}" style="--g1:${g.c1};--g2:${g.c2}">
     <div class="gc-banner">
-      <img src="${g.img}" alt="${escStr(t(g.i18n))}" loading="lazy" onerror="this.style.background='linear-gradient(135deg,${g.c1},${g.c2})';this.remove()">
-      <div class="gc-overlay"></div>
+      <img src="${gameImg(g)}" alt="${escStr(t(g.i18n))}" loading="lazy" onerror="imgOnError(this, '${g.id}')">
       <span class="gc-rate">★ ${g.rating}</span>
       <button class="gc-fav ${fav ? "on" : ""}" data-fav="${g.id}" aria-label="${t("nav.favs")}" title="${t("nav.favs")}">
         ${fav ? UI_ICONS.heartFill : UI_ICONS.heart}
       </button>
-      <span class="gc-cat">${gameCategoryLabel(g)}</span>
-      <span class="gc-name">${escStr(t(g.i18n))}</span>
     </div>
     <div class="gc-body">
+      <div class="gc-head">
+        <h3 class="gc-name">${escStr(t(g.i18n))}</h3>
+        <span class="gc-cat">${gameCategoryLabel(g)}</span>
+      </div>
       <div class="gc-meta"><span>${UI.stars(g.rating, 13)}</span><span>👥 ${escStr(g.players)} ${t("games.players")}</span></div>
       <div class="gc-pkgs">${chips}</div>
       <div class="gc-foot">
@@ -167,13 +173,13 @@ function renderGames() {
     btn.addEventListener("click", (e) => { e.stopPropagation(); const added = toggleFav(btn.dataset.fav); showToast(added ? t("product.favAdd") : t("product.favRemove")); renderGames(); })
   );
   grid.querySelectorAll(".gc-topup").forEach((btn) =>
-    btn.addEventListener("click", (e) => { e.stopPropagation(); window.location.href = `product.html?game=${btn.dataset.game}`; })
+    btn.addEventListener("click", (e) => { e.stopPropagation(); window.location.href = `game.html?game=${btn.dataset.game}`; })
   );
   grid.querySelectorAll(".game-card").forEach((c) =>
-    c.addEventListener("click", () => (window.location.href = `product.html?game=${c.dataset.game}`))
+    c.addEventListener("click", () => (window.location.href = `game.html?game=${c.dataset.game}`))
   );
   grid.querySelectorAll(".game-card").forEach((c) =>
-    c.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); window.location.href = `product.html?game=${c.dataset.game}`; } })
+    c.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); window.location.href = `game.html?game=${c.dataset.game}`; } })
   );
   initReveal();
 }
@@ -189,9 +195,9 @@ function renderFlash() {
     const pk = { key: pkgKey(f.game, f.amount) };
     const off = pkgOff(pk);
     return `
-    <div class="flash-card reveal">
+    <div class="flash-card reveal" style="--g1:${g.c1};--g2:${g.c2}">
       <div class="fc-top">
-        <span class="gemoji" style="background:linear-gradient(135deg,${g.c1},${g.c2});border-radius:12px;width:48px;height:48px;display:flex;align-items:center;justify-content:center">${g.icon}</span>
+        <span class="gemoji"><img src="${gameImg(g)}" alt="" loading="lazy" onerror="imgOnError(this, '${g.id}')"></span>
         <div>
           <h4>${escStr(t(g.i18n))}</h4>
           <span class="fc-cat">${f.amount} ${escStr(unitOf(f.game))}</span>
@@ -276,6 +282,13 @@ function onGameSelect() {
 function initWidget() {
   const btn = document.getElementById("widgetBtn");
   if (!btn) return;
+  const wimg = document.querySelector("#topupWidget .wimg img");
+  if (wimg) wimg.src = genCinematicArt("widget", 600, 400, "#7C3AED", "#22d3ee");
+  bindPlayerLookup(
+    document.getElementById("widgetGame"),
+    document.getElementById("widgetId"),
+    document.getElementById("widgetLookup")
+  );
   btn.addEventListener("click", () => {
     const gameId = document.getElementById("widgetGame").value;
     const playerId = document.getElementById("widgetId").value.trim();
@@ -324,6 +337,22 @@ function renderFaq() {
   );
 }
 
+/* ---------- الخدمات البرمجية ---------- */
+function renderServices() {
+  const grid = document.getElementById("servicesHomeGrid");
+  if (!grid) return;
+  grid.innerHTML = SERVICES.map((s) => `
+    <a class="sv-mini reveal" href="services.html#${s.id}">
+      <span class="svm-ic" style="background:linear-gradient(135deg,var(--accent),${s.id === "bot" ? "#0ea5e9" : s.id === "store" ? "#22c55e" : s.id === "ui" ? "#f43f5e" : s.id === "app" ? "#8b5cf6" : s.id === "script" ? "#f59e0b" : "#a855f7"})">${s.icon}</span>
+      <div class="svm-info">
+        <b>${escStr(t(s.i18n))}</b>
+        <span>${t("sv.from")} <b>${formatPrice(s.from)}</b></span>
+      </div>
+      <span class="svm-arr">${UI_ICONS.chevL}</span>
+    </a>`).join("");
+  initReveal();
+}
+
 /* ---------- البحث ---------- */
 function applyUrlParams() {
   try {
@@ -354,6 +383,7 @@ function initShowAll() {
 /* ---------- إعادة الرندر عند تغيير اللغة ---------- */
 function afterLangChange() {
   if (typeof renderAll === "function") renderAll();
+  if (typeof luRefreshAll === "function") luRefreshAll();
 }
 
 function renderAll() {
@@ -366,6 +396,7 @@ function renderAll() {
   renderWidgetGames();
   renderNews();
   renderFaq();
+  renderServices();
   renderCart();
   initReveal();
 }

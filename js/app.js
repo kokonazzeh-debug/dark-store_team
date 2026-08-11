@@ -136,6 +136,7 @@ function addTopUp(gameId, amount, playerId, qty = 1, server) {
   updateNavCounts();
   renderCart();
   showToast(t("widget.success"));
+  if (typeof sfxCoin === "function") sfxCoin();
 }
 
 function changeQty(key, playerId, delta) {
@@ -278,6 +279,9 @@ function addReview(rv) {
 function showToast(msg, type = "ok") {
   const box = document.querySelector(".toasts");
   if (!box) return;
+  if (type === "err" && typeof sfxError === "function") sfxError();
+  else if (type !== "ok" && typeof sfxNotif === "function") sfxNotif();
+  else if (typeof sfxSuccess === "function") sfxSuccess();
   const tEl = document.createElement("div");
   tEl.className = `toast ${type}`;
   tEl.innerHTML = `<span class="dot"></span><span>${escStr(msg)}</span>`;
@@ -353,6 +357,7 @@ function bindHeaderEvents() {
   });
   document.querySelectorAll("#langBtn").forEach((b) => b.addEventListener("click", toggleLang));
   document.querySelectorAll(".cart-btn").forEach((b) => b.addEventListener("click", openCart));
+  document.querySelectorAll("#soundBtn, #mSound").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); soundToggle(); }));
   const favsBtn = document.getElementById("navFavsBtn") || document.getElementById("mFavs");
   favsBtn?.addEventListener("click", () => (window.location.href = "account.html#favs"));
   const notifsBtn = document.getElementById("navNotifsBtn") || document.getElementById("mNotifs");
@@ -435,6 +440,8 @@ document.addEventListener("DOMContentLoaded", () => {
   renderCart();
   bindGlobalEvents();
   initReveal();
+  if (typeof initSounds === "function") initSounds();
+  if (typeof initFx === "function") initFx();
   const year = document.getElementById("year");
   if (year) year.textContent = new Date().getFullYear();
 });

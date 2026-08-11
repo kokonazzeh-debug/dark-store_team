@@ -6,6 +6,12 @@ function accActive() {
   return ["home", "favs", "notifs", "profile", "pay", "settings"].includes(h) ? h : "home";
 }
 
+function gameCategoryLabel(g) {
+  const id = (g.cats || []).find((c) => c !== "popular" && c !== "new");
+  const cat = getCategory(id);
+  return cat ? `${cat.icon} ${t(cat.i18n)}` : "🎮";
+}
+
 function renderAccount() {
   const active = accActive();
   UI.mountUserSidebar(active);
@@ -71,13 +77,15 @@ function favsPanel() {
       return `
       <div class="game-card" data-game="${g.id}" style="cursor:pointer">
         <div class="gc-banner">
-          <img src="${g.img}" alt="${escStr(t(g.i18n))}" loading="lazy" onerror="this.style.background='linear-gradient(135deg,${g.c1},${g.c2})';this.remove()">
-          <div class="gc-overlay"></div>
+          <img src="${gameImg(g)}" alt="${escStr(t(g.i18n))}" loading="lazy" onerror="imgOnError(this, '${g.id}')">
           <span class="gc-rate">★ ${g.rating}</span>
           <button class="gc-fav on" data-ufav="${g.id}">${UI_ICONS.heartFill}</button>
-          <span class="gc-name">${escStr(t(g.i18n))}</span>
         </div>
         <div class="gc-body">
+          <div class="gc-head">
+            <h3 class="gc-name">${escStr(t(g.i18n))}</h3>
+            <span class="gc-cat">${gameCategoryLabel(g)}</span>
+          </div>
           <div class="gc-foot">
             <span class="gc-price">${t("games.from")} <b>${formatPrice(min)}</b></span>
             <button class="btn btn-primary btn-sm" data-game="${g.id}">${t("games.topup")}</button>
@@ -190,7 +198,7 @@ function bindPanel(active) {
       b.addEventListener("click", (e) => { e.stopPropagation(); toggleFav(b.dataset.ufav); renderAccount(); })
     );
     document.querySelectorAll("[data-game]").forEach((c) =>
-      c.addEventListener("click", () => (window.location.href = `product.html?game=${c.dataset.game}`))
+      c.addEventListener("click", () => (window.location.href = `game.html?game=${c.dataset.game}`))
     );
   }
   if (active === "pay") {
