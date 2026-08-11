@@ -8,12 +8,18 @@ let gxQty = 1;
 let gxServer = "";
 let gxRvStars = 5;
 let gxReady = false;
+let gxScrollTo = false;
 let gxBound = false;
 
 function readQuery() {
   try {
     const params = new URLSearchParams(window.location.search);
     gxGame = getGame(params.get("game")) || null;
+    const wantPkg = Number(params.get("pkg"));
+    if (gxGame && wantPkg) {
+      gxPkg = getPackages(gxGame.id).find((p) => p.amount === wantPkg) || null;
+      gxScrollTo = true;
+    }
     gxReady = true;
   } catch (e) { gxReady = true; }
 }
@@ -401,4 +407,10 @@ function afterLangChange() {
 document.addEventListener("DOMContentLoaded", () => {
   readQuery();
   renderAll();
+  if (gxScrollTo) {
+    setTimeout(() => {
+      document.getElementById("gxBuy")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      gxScrollTo = false;
+    }, 60);
+  }
 });

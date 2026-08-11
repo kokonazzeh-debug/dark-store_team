@@ -115,40 +115,61 @@ function gameCategoryLabel(g) {
   return cat ? `${cat.icon} ${t(cat.i18n)}` : "🎮";
 }
 
-function gameMinPrice(g) {
-  const prices = getPackages(g.id).map((p) => getPrice({ key: pkgKey(g.id, p.amount) }));
-  return prices.length ? Math.min(...prices) : 0;
-}
-
-function gameCardHTML(g) {
-  const min = gameMinPrice(g);
-  const chips = getPackages(g.id).slice(0, 3).map((p) => {
+function gameSectionHTML(g) {
+  const pkgs = getPackages(g.id);
+  const prices = pkgs.map((p) => getPrice({ key: pkgKey(g.id, p.amount) }));
+  const min = prices.length ? Math.min(...prices) : 0;
+  let bestAmount = null;
+  if (pkgs.length > 1) {
+    let b = pkgs[0], bu = Infinity;
+    pkgs.forEach((p) => {
+      const u = getPrice({ key: pkgKey(g.id, p.amount) }) / p.amount;
+      if (u < bu) { bu = u; b = p; }
+    });
+    bestAmount = b.amount;
+  }
+  const flashCount = flashSales().filter((f) => f.game === g.id && isFlashOn(f.game, f.amount)).length;
+  const pkgCards = pkgs.map((p) => {
     const pk = { key: pkgKey(g.id, p.amount) };
-    return `<span class="pkg-chip">${p.amount} ${escStr(unitOf(g.id))} · <b>${formatPrice(getPrice(pk))}</b></span>`;
+    const price = getPrice(pk);
+    const old = getOldPrice(pk);
+    const off = pkgOff(pk);
+    const isBest = bestAmount === p.amount;
+    return `
+    <button class="gs-pkg ${isBest ? "best" : ""}" data-game="${g.id}" data-amount="${p.amount}" title="${escStr(t("games.addCart"))}">
+      <span class="gp-meta">
+        ${isBest ? `<span class="gp-badge">⚡ ${t("games.best")}</span>` : ""}
+        ${off ? `<span class="gp-off">-${off}%</span>` : ""}
+      </span>
+      <b class="gp-name">${p.amount} ${escStr(unitOf(g.id))}</b>
+      <span class="gp-line"><b class="gp-price">${formatPrice(price)}</b>${old ? `<del class="gp-old">${formatPrice(old)}</del>` : ""}</span>
+    </button>`;
   }).join("");
-  const fav = isFav(g.id);
   return `
-  <div class="game-card reveal" data-game="${g.id}" tabindex="0" role="link" aria-label="${escStr(t(g.i18n))}" style="--g1:${g.c1};--g2:${g.c2}">
-    <div class="gc-banner">
+  <section class="game-section reveal" data-game="${g.id}" style="--g1:${g.c1};--g2:${g.c2}">
+    <div class="gs-head">
+      <div class="gs-title">
+        <span class="gs-ic">${g.icon}</span>
+        <div class="gs-title-txt">
+          <h3 class="gs-name">${escStr(t(g.i18n))}</h3>
+          <div class="gs-meta">
+            <span class="gs-stars">${UI.stars(g.rating, 12)}</span>
+            <span class="gs-players">👥 ${escStr(g.players)} ${t("games.players")}</span>
+            <span class="gs-cat">${gameCategoryLabel(g)}</span>
+          </div>
+        </div>
+      </div>
+      <a class="link-all gs-all" href="game.html?game=${g.id}">${t("games.allPkgs")} <span class="arr"></span></a>
+    </div>
+    <div class="gs-banner" data-open="${g.id}" role="link" tabindex="0" aria-label="${escStr(t(g.i18n))}">
       <img src="${gameImg(g)}" alt="${escStr(t(g.i18n))}" loading="lazy" onerror="imgOnError(this, '${g.id}')">
-      <span class="gc-rate">★ ${g.rating}</span>
-      <button class="gc-fav ${fav ? "on" : ""}" data-fav="${g.id}" aria-label="${t("nav.favs")}" title="${t("nav.favs")}">
-        ${fav ? UI_ICONS.heartFill : UI_ICONS.heart}
-      </button>
+      <div class="gs-banner-ov"></div>
+      <span class="gs-banner-min">${t("games.from")} <b>${formatPrice(min)}</b></span>
+      ${flashCount ? `<span class="gs-banner-flash">⚡ ${flashCount} ${t("games.offers")}</span>` : ""}
+      <span class="gs-banner-cta">${t("games.openPage")} <b>${UI_ICONS.chevL}</b></span>
     </div>
-    <div class="gc-body">
-      <div class="gc-head">
-        <h3 class="gc-name">${escStr(t(g.i18n))}</h3>
-        <span class="gc-cat">${gameCategoryLabel(g)}</span>
-      </div>
-      <div class="gc-meta"><span>${UI.stars(g.rating, 13)}</span><span>👥 ${escStr(g.players)} ${t("games.players")}</span></div>
-      <div class="gc-pkgs">${chips}</div>
-      <div class="gc-foot">
-        <span class="gc-price">${t("games.from")} <b>${formatPrice(min)}</b></span>
-        <button class="btn btn-primary btn-sm gc-topup" data-game="${g.id}">${t("games.topup")}</button>
-      </div>
-    </div>
-  </div>`;
+    <div class="gs-pkgs">${pkgCards}</div>
+  </section>`;
 }
 
 function renderGames() {
@@ -168,19 +189,17 @@ function renderGames() {
     grid.innerHTML = UI.empty("🔍", t("games.none"), t("games.noneSub"), "index.html", t("games.all"));
     return;
   }
-  grid.innerHTML = list.map(gameCardHTML).join("");
-  grid.querySelectorAll("[data-fav]").forEach((btn) =>
-    btn.addEventListener("click", (e) => { e.stopPropagation(); const added = toggleFav(btn.dataset.fav); showToast(added ? t("product.favAdd") : t("product.favRemove")); renderGames(); })
+  grid.innerHTML = list.map(gameSectionHTML).join("");
+  grid.querySelectorAll(".gs-pkg").forEach((btn) =>
+    btn.addEventListener("click", () => {
+      window.location.href = `game.html?game=${btn.dataset.game}&pkg=${btn.dataset.amount}`;
+    })
   );
-  grid.querySelectorAll(".gc-topup").forEach((btn) =>
-    btn.addEventListener("click", (e) => { e.stopPropagation(); window.location.href = `game.html?game=${btn.dataset.game}`; })
-  );
-  grid.querySelectorAll(".game-card").forEach((c) =>
-    c.addEventListener("click", () => (window.location.href = `game.html?game=${c.dataset.game}`))
-  );
-  grid.querySelectorAll(".game-card").forEach((c) =>
-    c.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); window.location.href = `game.html?game=${c.dataset.game}`; } })
-  );
+  grid.querySelectorAll(".gs-banner").forEach((b) => {
+    const go = () => (window.location.href = `game.html?game=${b.dataset.open}`);
+    b.addEventListener("click", go);
+    b.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+  });
   initReveal();
 }
 
@@ -406,7 +425,7 @@ function showSkeletons() {
   const grid = document.getElementById("gamesGrid");
   const flash = document.getElementById("flashGrid");
   const news = document.getElementById("newsList");
-  if (grid) grid.innerHTML = UI.skeletonCards(6);
+  if (grid) grid.innerHTML = UI.skeletonCards(3);
   if (flash) flash.innerHTML = UI.skeletonCards(4);
   if (news) {
     news.innerHTML = Array(4).fill(0).map(() => `

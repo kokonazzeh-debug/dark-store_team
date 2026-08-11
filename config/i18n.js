@@ -300,6 +300,11 @@ const I18N = {
     "games.rating": "التقييم",
     "games.none": "لا توجد ألعاب مطابقة لبحثك",
     "games.noneSub": "جرّب كلمة بحث أخرى",
+    "games.allPkgs": "كل الباقات والعروض",
+    "games.addCart": "اشترِ مباشرة",
+    "games.best": "أفضل قيمة",
+    "games.offers": "عروض متاحة",
+    "games.openPage": "افتح صفحة اللعبة",
 
     /* ---- المنتج ---- */
     "product.buyNow": "اشحن الآن",
@@ -1058,6 +1063,11 @@ const I18N = {
     "games.rating": "Rating",
     "games.none": "No games match your search",
     "games.noneSub": "Try another search term",
+    "games.allPkgs": "All packages & offers",
+    "games.addCart": "Buy now",
+    "games.best": "Best value",
+    "games.offers": "offers available",
+    "games.openPage": "Open game page",
 
     /* ---- Product ---- */
     "product.buyNow": "Top up now",
