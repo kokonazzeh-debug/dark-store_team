@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>دارك ستور — إتمام الطلب</title>
-  <meta name="description" content="أكمل بياناتك واختر طريقة الدفع لإتمام طلب الشحن في دارك ستور.">
+  <title>دارك ستور — طلباتي</title>
+  <meta name="description" content="تابع حالة طلبات الشحن الخاصة بك في دارك ستور.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body data-page="checkout">
+<body data-page="orders">
 
   <div id="appHeader"></div>
 
@@ -19,15 +19,16 @@
     <div class="container">
       <nav class="breadcrumb" aria-label="breadcrumb">
         <a href="index.html" data-i18n="nav.home"></a> /
-        <span data-i18n="nav.cart"></span> /
-        <span data-i18n="check.title"></span>
+        <a href="account.html" data-i18n="acc.title"></a> /
+        <span data-i18n="orders.title"></span>
       </nav>
       <div class="page-title">
-        <h1 data-i18n="check.title"></h1>
-        <p data-i18n="check.sub"></p>
+        <h1>📦 <span data-i18n="orders.title"></span></h1>
+        <p data-i18n="orders.sub"></p>
       </div>
 
-      <div id="checkRoot"></div>
+      <div class="stat-grid" id="ordersStats"></div>
+      <div id="ordersList"></div>
     </div>
   </main>
 
@@ -61,6 +62,6 @@
   <script src="config/i18n.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/app.js"></script>
-  <script src="js/checkout.js"></script>
+  <script src="js/orders.js"></script>
 </body>
 </html>

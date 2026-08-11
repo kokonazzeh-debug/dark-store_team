@@ -3,78 +3,150 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تفاصيل المنتج — دارك ستور</title>
-  <meta name="description" content="تفاصيل المنتج — دارك ستور">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛒</text></svg>">
+  <title>دارك ستور — تفاصيل المنتج</title>
+  <meta name="description" content="شحن ألعاب فوري بأفضل الأسعار — باقات PUBG، Free Fire، Mobile Legends، COD وأكثر.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body data-page="product">
 
-  <nav class="nav">
-    <div class="container nav-inner">
-      <a href="index.html" class="logo"><span class="logo-badge">🛒</span> دارك ستور</a>
-      <div class="nav-links" id="navLinks">
-        <a href="index.html">الرئيسية</a>
-        <a href="products.html" class="active">المنتجات</a>
-        <a href="products.html?cat=electronics">إلكترونيات</a>
-        <a href="products.html?cat=groceries">بقالة</a>
-        <a href="products.html?cat=fashion">أزياء</a>
-      </div>
-      <div class="nav-actions">
-        <div class="search-box">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
-          <input class="nav-search" type="search" placeholder="ابحث عن منتج..." aria-label="بحث">
-        </div>
-        <button class="btn-icon cart-btn" onclick="openCart()" aria-label="السلة">🛒 <span class="cart-count" style="display:none">0</span></button>
-        <button class="btn-icon hamburger" aria-label="القائمة">☰</button>
-      </div>
-    </div>
-  </nav>
+  <div id="appHeader"></div>
 
-  <div class="container">
-    <nav class="breadcrumb" id="breadcrumb"></nav>
-
-    <div class="pd-grid">
-      <div class="pd-gallery" id="gallery"></div>
-      <div class="pd-info" id="info"></div>
-    </div>
-
-    <section class="related">
-      <div class="section-head">
-        <div><h2>منتجات مشابهة</h2><p class="sub">قد يعجبك أيضًا</p></div>
-      </div>
-      <div class="products-grid" id="relatedGrid"></div>
-    </section>
-  </div>
-
-  <footer class="footer">
+  <main class="main-content">
     <div class="container">
-      <div class="footer-grid">
-        <div>
-          <a href="index.html" class="logo"><span class="logo-badge">🛒</span> دارك ستور</a>
-          <p style="color:var(--text-3);font-size:14px;margin-top:14px;line-height:1.8">متجرك الشامل لكل احتياجاتك اليومية — تسوق بأمان، واستلم بسرعة.</p>
+      <nav class="breadcrumb" aria-label="breadcrumb">
+        <a href="index.html" data-i18n="nav.home"></a> /
+        <a href="index.html#games" data-i18n="nav.games"></a> /
+        <span id="crumbGame"></span>
+      </nav>
+
+      <div class="prod-grid" id="prodRoot">
+        <div class="prod-gallery">
+          <div class="pg-img" id="pgImg">
+            <img src="" alt="" id="pgImgSrc">
+            <span class="prod-rate-badge" id="pgRating">★ 4.8</span>
+            <span class="pg-emoji" id="pgEmoji">🎮</span>
+          </div>
         </div>
-        <div><h4>تسوق</h4><a href="products.html">كل المنتجات</a><a href="products.html?tag=flash">عروض الفلاش</a></div>
-        <div><h4>حسابي</h4><a href="checkout.html">إتمام الطلب</a><a href="#">المفضلة</a></div>
-        <div><h4>تواصل معنا</h4><a href="#">مركز المساعدة</a><a href="#">الأسئلة الشائعة</a></div>
+        <div class="prod-info">
+          <h1 id="pgTitle"></h1>
+          <div class="prod-meta">
+            <span class="stars" id="pgStars"></span>
+            <span id="pgPlayers"></span>
+            <span class="prod-cat" id="pgCat"></span>
+          </div>
+          <div class="prod-price">
+            <span class="now" id="pgPriceNow"></span>
+            <span class="old" id="pgPriceOld"></span>
+            <span class="off" id="pgPriceOff"></span>
+          </div>
+
+          <div class="field">
+            <label data-i18n="product.pkg"></label>
+            <div class="pkg-chips" id="pgPkgs"></div>
+          </div>
+
+          <div class="field" id="pgServerField" style="display:none">
+            <label for="pgServer" data-i18n="product.server"></label>
+            <select class="select" id="pgServer"></select>
+          </div>
+
+          <div class="field">
+            <label for="pgPlayerId" data-i18n="product.playerId"></label>
+            <input class="input" id="pgPlayerId" type="text" autocomplete="off">
+          </div>
+
+          <div class="field">
+            <label data-i18n="product.qty"></label>
+            <div class="qty-stepper">
+              <button type="button" data-q="-1" aria-label="−">−</button>
+              <span>1</span>
+              <button type="button" data-q="1" aria-label="+">+</button>
+            </div>
+          </div>
+
+          <div class="prod-actions">
+            <button class="btn btn-primary btn-lg btn-glow" id="pgBuy">⚡ <span data-i18n="product.buyNow"></span></button>
+            <button class="btn btn-ghost btn-lg" id="pgCart">🛒 <span data-i18n="product.addCart"></span></button>
+            <button class="btn btn-ghost btn-lg" id="pgFav" aria-label="Favorite">♡</button>
+          </div>
+          <div class="prod-secure" data-i18n="check.secure"></div>
+        </div>
       </div>
-      <div class="footer-bottom"><span>© <span id="year"></span> دارك ستور. جميع الحقوق محفوظة.</span></div>
+
+      <div class="tabs" id="prodTabs" role="tablist">
+        <button class="tab-btn active" data-tab="desc" role="tab"><span data-i18n="product.tab.desc"></span></button>
+        <button class="tab-btn" data-tab="ship" role="tab"><span data-i18n="product.tab.ship"></span></button>
+        <button class="tab-btn" data-tab="important" role="tab"><span data-i18n="product.tab.important"></span></button>
+        <button class="tab-btn" data-tab="warranty" role="tab"><span data-i18n="product.tab.warranty"></span></button>
+        <button class="tab-btn" data-tab="faq" role="tab"><span data-i18n="product.tab.faq"></span></button>
+        <button class="tab-btn" data-tab="reviews" role="tab"><span data-i18n="product.tab.reviews"></span></button>
+      </div>
+
+      <div class="tab-panel active" id="panel-desc"><p data-i18n="product.desc.text"></p></div>
+      <div class="tab-panel" id="panel-ship"><p data-i18n="product.ship.text"></p></div>
+      <div class="tab-panel" id="panel-important"><p data-i18n="product.important.text"></p></div>
+      <div class="tab-panel" id="panel-warranty"><p data-i18n="product.warranty.text"></p></div>
+      <div class="tab-panel" id="panel-faq"></div>
+      <div class="tab-panel" id="panel-reviews">
+        <div id="reviewsList"></div>
+        <div class="review-form">
+          <h3 data-i18n="product.writeReview"></h3>
+          <div class="stars-input" id="rvStars" dir="ltr">
+            <button data-v="1" aria-label="1">★</button>
+            <button data-v="2" aria-label="2">★</button>
+            <button data-v="3" aria-label="3">★</button>
+            <button data-v="4" aria-label="4">★</button>
+            <button data-v="5" aria-label="5">★</button>
+          </div>
+          <div class="field-row" style="margin:16px 0">
+            <div class="field">
+              <label for="rvName" data-i18n="product.yourName"></label>
+              <input class="input" id="rvName" type="text" autocomplete="name">
+            </div>
+            <div class="field">
+              <label for="rvText" data-i18n="product.yourText"></label>
+              <input class="input" id="rvText" type="text">
+            </div>
+          </div>
+          <button class="btn btn-primary" id="rvSend" data-i18n="product.sendReview"></button>
+        </div>
+      </div>
     </div>
-  </footer>
+  </main>
+
+  <div id="appFooter"></div>
 
   <div class="overlay" id="overlay"></div>
-  <aside class="drawer" id="drawer">
-    <div class="drawer-head"><h3>🛒 سلة التسوق</h3><button class="btn-icon" onclick="closeCart()">✕</button></div>
+  <aside class="drawer" id="drawer" aria-label="السلة">
+    <div class="drawer-head"><h3>🛒 <span data-i18n="cart.title"></span></h3><button class="btn-icon modal-close" onclick="closeCart()" aria-label="إغلاق">✕</button></div>
     <div class="drawer-body"></div>
     <div class="drawer-foot"></div>
   </aside>
 
+  <div class="modal-backdrop" id="adminModal">
+    <div class="modal admin-login-card">
+      <button class="btn-icon modal-close" data-close="adminModal" aria-label="إغلاق">✕</button>
+      <span class="lock">🛡️</span>
+      <h1 data-i18n="a.login"></h1>
+      <p data-i18n="a.loginSub"></p>
+      <div class="field">
+        <label for="adminPassInput" data-i18n="a.password"></label>
+        <input class="input" id="adminPassInput" type="password" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary btn-lg btn-block" id="adminLoginBtn" data-i18n="a.enter"></button>
+    </div>
+  </div>
+
   <button id="backTop" aria-label="الصعود للأعلى">↑</button>
   <div class="toasts"></div>
 
-  <script src="js/data.js"></script>
+  <script src="config/data.js"></script>
+  <script src="config/i18n.js"></script>
+  <script src="js/ui.js"></script>
   <script src="js/app.js"></script>
   <script src="js/product.js"></script>
 </body>

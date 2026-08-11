@@ -1,116 +1,230 @@
-const pid = new URLSearchParams(window.location.search).get("id");
-const product = getProduct(pid);
-let selected = {};
-let qty = 1;
-let mainIdx = 0;
+/* =====================================================
+   صفحة المنتج — التفاصيل، الباقات، التقييمات
+   ===================================================== */
+let pgGame = null;
+let pgPkg = null;
+let pgQty = 1;
+let pgServer = "";
+let rvStars = 5;
 
-if (!product) {
-  window.location.href = "products.html";
+function readQuery() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const gid = params.get("game");
+    pgGame = getGame(gid) || null;
+    if (pgGame && params.get("pkg")) {
+      pgPkg = getPackages(pgGame.id).find((p) => p.amount === Number(params.get("pkg"))) || null;
+    }
+  } catch (e) { /* ignore */ }
 }
 
-function renderGallery() {
-  const g = document.getElementById("gallery");
-  g.innerHTML = `
-    <div class="pd-main"><img id="mainImg" src="${product.images[0]}" alt="${product.name}"></div>
-    <div class="pd-thumbs" id="thumbs">
-      ${product.images.map((img, i) => `<img src="${img}" class="${i === 0 ? "active" : ""}" data-i="${i}" alt="">`).join("")}
-    </div>`;
-  g.querySelectorAll("#thumbs img").forEach((t) =>
-    t.addEventListener("click", () => {
-      mainIdx = Number(t.dataset.i);
-      document.getElementById("mainImg").src = product.images[mainIdx];
-      g.querySelectorAll("#thumbs img").forEach((x) => x.classList.toggle("active", x === t));
-    })
-  );
-}
-
-function renderInfo() {
-  const off = product.oldPrice ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) : 0;
-  const stockNote =
-    product.stock === 0
-      ? `<div class="stock-note out">⛔ غير متوفر حاليًا</div>`
-      : product.stock <= 5
-      ? `<div class="stock-note low">⚠️ باقي ${product.stock} قطع فقط — اطلب الآن</div>`
-      : `<div class="stock-note">✓ متوفر في المخزون (${product.stock})</div>`;
-
-  let optionsHtml = "";
-  for (const [key, values] of Object.entries(product.options)) {
-    optionsHtml += `
-      <div class="pd-options">
-        <label>${key}:</label>
-        <div class="option-chips" data-opt="${key}">
-          ${values.map((v, i) => `<button class="option-chip ${i === 0 ? "active" : ""}" data-val="${v}">${v}</button>`).join("")}
-        </div>
-      </div>`;
+function renderProduct() {
+  const root = document.getElementById("prodRoot");
+  if (!pgGame) {
+    root.style.display = "none";
+    document.getElementById("prodTabs").style.display = "none";
+    const holder = document.querySelector(".main-content .container");
+    const el = document.createElement("div");
+    el.innerHTML = UI.empty("🎮", t("od.notFound"), t("od.notFoundSub"), "index.html", t("cartPage.start"));
+    holder.prepend(el);
+    return;
   }
 
-  const info = document.getElementById("info");
-  info.innerHTML = `
-    <span class="product-cat">${getCategory(product.category)?.name || ""}</span>
-    <h1>${product.name}</h1>
-    <div class="pd-meta">
-      <span>★ ${product.rating} (${product.reviews} تقييم)</span>
-      <span>القسط: ${Math.ceil(product.price / 6)} ج.م × 6</span>
-    </div>
-    <div class="pd-price">
-      <span class="now">${formatPrice(product.price)}</span>
-      ${product.oldPrice ? `<span class="old">${formatPrice(product.oldPrice)}</span>` : ""}
-      ${off ? `<span class="off">خصم ${off}%</span>` : ""}
-    </div>
-    <p class="pd-desc">${product.desc}</p>
-    ${optionsHtml}
-    <div class="qty-row">
-      <div class="qty">
-        <button id="qMinus">−</button>
-        <input id="qtyInput" type="text" value="1" readonly>
-        <button id="qPlus">+</button>
-      </div>
-      ${stockNote}
-    </div>
-    <div class="pd-actions">
-      <button class="btn btn-primary btn-lg" id="addBtn" ${product.stock === 0 ? "disabled" : ""}>🛒 أضف إلى السلة</button>
-      <button class="btn btn-ghost btn-lg" id="wishBtn">♡ أضف للمفضلة</button>
-    </div>
-    <div class="pd-extra">
-      <div class="feat">🚚 <span><b>توصيل سريع</b>وصول خلال 24 ساعة</span></div>
-      <div class="feat">↩️ <span><b>استرجاع مجاني</b>خلال 14 يوم</span></div>
-      <div class="feat">🛡️ <span><b>جودة مضمونة</b>منتجات أصلية 100%</span></div>
-      <div class="feat">💳 <span><b>دفع آمن</b>كارت أو عند الاستلام</span></div>
-    </div>`;
+  const g = pgGame;
+  const pkgs = getPackages(g.id);
+  document.title = t(g.i18n) + " — " + storeName();
+  document.getElementById("crumbGame").textContent = t(g.i18n);
+  document.getElementById("pgImgSrc").src = g.img;
+  document.getElementById("pgImgSrc").alt = t(g.i18n);
+  document.getElementById("pgEmoji").textContent = g.icon;
+  document.getElementById("pgTitle").textContent = t(g.i18n);
+  document.getElementById("pgStars").innerHTML = UI.stars(g.rating, 16);
+  document.getElementById("pgPlayers").textContent = "👥 " + g.players + " " + t("games.players");
+  const cat = getCategory((g.cats || [])[0]);
+  document.getElementById("pgCat").textContent = cat ? cat.icon + " " + t(cat.i18n) : "🎮";
+  document.getElementById("pgRating").textContent = "★ " + g.rating;
 
-  document.getElementById("qMinus").addEventListener("click", () => {
-    qty = Math.max(1, qty - 1);
-    document.getElementById("qtyInput").value = qty;
-  });
-  document.getElementById("qPlus").addEventListener("click", () => {
-    qty = Math.min(qty + 1, Math.max(product.stock, 1));
-    document.getElementById("qtyInput").value = qty;
-  });
-  document.getElementById("addBtn").addEventListener("click", () => addToCart(product.id, qty));
-  document.getElementById("wishBtn").addEventListener("click", () => toggleWish(product.id));
+  renderPkgs();
+  renderServer();
+  renderReviews();
 
-  info.querySelectorAll(".option-chip").forEach((chip) =>
-    chip.addEventListener("click", () => {
-      const group = chip.closest(".option-chips");
-      group.querySelectorAll(".option-chip").forEach((c) => c.classList.remove("active"));
-      chip.classList.add("active");
-      selected[group.dataset.opt] = chip.dataset.val;
+  /* أحداث الباقات */
+  document.getElementById("pgPkgs").querySelectorAll(".pkg-chip-big").forEach((el) =>
+    el.addEventListener("click", () => {
+      pgPkg = getPackages(g.id).find((p) => p.amount === Number(el.dataset.amount)) || null;
+      renderPkgs();
+      renderPrice();
     })
   );
 
-  document.getElementById("breadcrumb").innerHTML =
-    `<a href="index.html">الرئيسية</a> ← <a href="products.html">المنتجات</a> ← <a href="products.html?cat=${product.category}">${getCategory(product.category)?.name || ""}</a> ← <span>${product.name}</span>`;
-  document.title = product.name + " — دارك ستور";
+  /* أحداث الشراء */
+  document.getElementById("pgBuy").addEventListener("click", () => {
+    if (!validateTopUp()) return;
+    addTopUp(g.id, pgPkg.amount, document.getElementById("pgPlayerId").value.trim(), pgQty, pgServer);
+    setTimeout(() => (window.location.href = "checkout.html"), 350);
+  });
+  document.getElementById("pgCart").addEventListener("click", () => {
+    if (!validateTopUp()) return;
+    addTopUp(g.id, pgPkg.amount, document.getElementById("pgPlayerId").value.trim(), pgQty, pgServer);
+    openCart();
+  });
+  document.getElementById("pgFav").addEventListener("click", () => {
+    const on = toggleFav(g.id);
+    document.getElementById("pgFav").textContent = on ? "♥" : "♡";
+    document.getElementById("pgFav").classList.toggle("on", on);
+    showToast(on ? t("product.favAdd") : t("product.favRemove"));
+  });
+  document.getElementById("pgFav").textContent = isFav(g.id) ? "♥" : "♡";
+  document.getElementById("pgFav").classList.toggle("on", isFav(g.id));
+
+  initQty();
+  initTabs();
 }
 
-function renderRelated() {
-  const related = PRODUCTS.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4);
-  document.getElementById("relatedGrid").innerHTML = related.map(productCard).join("");
+function renderPkgs() {
+  const box = document.getElementById("pgPkgs");
+  const pkgs = getPackages(pgGame.id);
+  if (!pgPkg) pgPkg = pkgs[0];
+  box.innerHTML = pkgs.map((p) => {
+    const pk = { key: pkgKey(pgGame.id, p.amount) };
+    const off = pkgOff(pk);
+    return `
+    <div class="pkg-chip-big ${pgPkg && pgPkg.amount === p.amount ? "active" : ""}" data-amount="${p.amount}" role="button" tabindex="0">
+      <b>${p.amount} ${escStr(unitOf(pgGame.id))}</b>
+      <span>${formatPrice(getPrice(pk))}</span>
+      ${getOldPrice(pk) ? `<small>${formatPrice(getOldPrice(pk))}</small>` : ""}
+      ${off ? `<span style="color:var(--danger);font-size:11px">-${off}%</span>` : ""}
+    </div>`;
+  }).join("");
+  renderPrice();
+}
+
+function renderPrice() {
+  if (!pgPkg) return;
+  const pk = { key: pkgKey(pgGame.id, pgPkg.amount) };
+  document.getElementById("pgPriceNow").textContent = formatPrice(getPrice(pk) * pgQty);
+  const old = getOldPrice(pk);
+  document.getElementById("pgPriceOld").textContent = old && old > getPrice(pk) ? formatPrice(old * pgQty) : "";
+  document.getElementById("pgPriceOld").style.display = old && old > getPrice(pk) ? "" : "none";
+  const off = pkgOff(pk);
+  document.getElementById("pgPriceOff").textContent = off ? `-${off}% ${t("product.disc")}` : "";
+  document.getElementById("pgPriceOff").style.display = off ? "" : "none";
+}
+
+function renderServer() {
+  const field = document.getElementById("pgServerField");
+  const sel = document.getElementById("pgServer");
+  if (!pgGame.servers || !pgGame.servers.length) {
+    field.style.display = "none";
+    pgServer = "";
+    return;
+  }
+  field.style.display = "";
+  sel.innerHTML = `<option value="">${escStr(t("product.serverPh"))}</option>` +
+    pgGame.servers.map((s) => `<option value="${escStr(s)}">${escStr(s)}</option>`).join("");
+  sel.addEventListener("change", () => { pgServer = sel.value; });
+}
+
+function validateTopUp() {
+  const idInput = document.getElementById("pgPlayerId");
+  idInput.classList.remove("field-error");
+  const playerId = idInput.value.trim();
+  if (!pgPkg) { showToast(t("product.errPkg"), "err"); return false; }
+  if (!/^\d{4,16}$/.test(playerId)) {
+    idInput.classList.add("field-error");
+    showToast(t("product.errId"), "err");
+    idInput.focus();
+    return false;
+  }
+  if (pgGame.servers && pgGame.servers.length && !pgServer) {
+    showToast(t("product.required"), "err");
+    document.getElementById("pgServer").focus();
+    return false;
+  }
+  return true;
+}
+
+function initQty() {
+  document.querySelector(".qty-stepper button[data-q='-1']")?.addEventListener("click", () => {
+    pgQty = Math.max(1, pgQty - 1);
+    document.querySelector(".qty-stepper span").textContent = pgQty;
+    renderPrice();
+  });
+  document.querySelector(".qty-stepper button[data-q='1']")?.addEventListener("click", () => {
+    pgQty = Math.min(10, pgQty + 1);
+    document.querySelector(".qty-stepper span").textContent = pgQty;
+    renderPrice();
+  });
+}
+
+function initTabs() {
+  const tabs = document.querySelectorAll("#prodTabs .tab-btn");
+  const activate = (tab) => {
+    tabs.forEach((x) => x.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("panel-" + tab.dataset.tab)?.classList.add("active");
+  };
+  tabs.forEach((b) => b.addEventListener("click", () => activate(b)));
+  if (window.location.hash === "#reviews") activate(tabs[5]);
+}
+
+function renderFaqTab() {
+  document.getElementById("panel-faq").innerHTML =
+    `<div class="faq-item open" style="border:1px solid var(--border-2)">
+      <div class="faq-q" style="padding:14px 18px"><span data-i18n="faq.q1"></span></div>
+      <div class="faq-a" style="max-height:none;padding:0 18px 16px"><p data-i18n="faq.a1"></p></div>
+    </div>` +
+    `<div class="faq-item" style="border:1px solid var(--border);border-radius:14px">
+      <div class="faq-q" style="padding:14px 18px"><span data-i18n="faq.q3"></span></div>
+      <div class="faq-a" style="padding:0 18px 16px"><p data-i18n="faq.a3"></p></div>
+    </div>`;
+}
+
+function renderReviews() {
+  if (!pgGame) return;
+  const list = document.getElementById("reviewsList");
+  const reviews = getReviews(pgGame.id);
+  if (!reviews.length) {
+    list.innerHTML = UI.empty("💬", t("product.noReviews"), "", "", "");
+  } else {
+    list.innerHTML = reviews.map((r) => `
+      <div class="review-card">
+        <div class="rc-head">
+          <span class="rc-name"><span class="rc-avatar">${escStr((r.name || "؟").charAt(0))}</span>${escStr(r.name)}</span>
+          <span class="rc-date">${UI.fmtDate(r.date)}</span>
+        </div>
+        ${UI.stars(r.stars, 13)}
+        <p class="rc-text" style="margin-top:6px">${escStr(r.text)}</p>
+      </div>`).join("");
+  }
+
+  document.getElementById("rvStars").querySelectorAll("button").forEach((b) =>
+    b.addEventListener("click", () => {
+      rvStars = Number(b.dataset.v);
+      document.getElementById("rvStars").querySelectorAll("button").forEach((x) => x.classList.toggle("on", Number(x.dataset.v) <= rvStars));
+    })
+  );
+  document.getElementById("rvStars").querySelectorAll("button").forEach((x) => x.classList.toggle("on", Number(x.dataset.v) <= rvStars));
+  document.getElementById("rvSend").addEventListener("click", () => {
+    const name = document.getElementById("rvName").value.trim();
+    const text = document.getElementById("rvText").value.trim();
+    if (!name || !text) { showToast(t("product.required"), "err"); return; }
+    addReview({ game: pgGame.id, name, stars: rvStars, text, date: new Date().toISOString() });
+    showToast(t("product.reviewDone"));
+    document.getElementById("rvName").value = "";
+    document.getElementById("rvText").value = "";
+    renderReviews();
+  });
+}
+
+function renderAll() {
+  renderProduct();
+  renderFaqTab();
+  renderCart();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  if (!product) return;
-  renderGallery();
-  renderInfo();
-  renderRelated();
+  readQuery();
+  renderAll();
 });

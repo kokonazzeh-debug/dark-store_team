@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>دارك ستور — تذاكري</title>
+  <meta name="description" content="تابع تذاكر الدعم وأنشئ تذاكر جديدة في دارك ستور.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="tickets">
+
+  <div id="appHeader"></div>
+
+  <main class="main-content">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="breadcrumb">
+        <a href="index.html" data-i18n="nav.home"></a> /
+        <a href="account.html" data-i18n="acc.title"></a> /
+        <span data-i18n="tk.title"></span>
+      </nav>
+      <div class="page-title">
+        <h1>🎫 <span data-i18n="tk.title"></span></h1>
+        <p data-i18n="tk.sub"></p>
+      </div>
+
+      <button class="btn btn-primary btn-lg btn-glow" id="tkNewBtn" style="margin-bottom:22px" data-i18n="tk.newPlus"></button>
+
+      <div class="panel" id="tkForm" style="display:none">
+        <h3 data-i18n="tk.new"></h3>
+        <div class="field">
+          <label for="tkSubject" data-i18n="tk.subject"></label>
+          <input class="input" id="tkSubject" type="text">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="tkCat" data-i18n="tk.category"></label>
+            <select class="select" id="tkCat">
+              <option value="support">🎧 <span data-i18n="tk.cat.support"></span></option>
+              <option value="billing">💳 <span data-i18n="tk.cat.billing"></span></option>
+              <option value="topup">⚡ <span data-i18n="tk.cat.topup"></span></option>
+              <option value="refund">↩️ <span data-i18n="tk.cat.refund"></span></option>
+              <option value="other">📌 <span data-i18n="tk.cat.other"></span></option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="tkPrio" data-i18n="tk.priority"></label>
+            <select class="select" id="tkPrio">
+              <option value="low">🟢 <span data-i18n="tk.priority.low"></span></option>
+              <option value="medium" selected>🟡 <span data-i18n="tk.priority.medium"></span></option>
+              <option value="high">🔴 <span data-i18n="tk.priority.high"></span></option>
+              <option value="urgent">⛔ <span data-i18n="tk.priority.urgent"></span></option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="tkMsg" data-i18n="tk.msg"></label>
+          <textarea class="input" id="tkMsg" rows="4" style="resize:vertical"></textarea>
+        </div>
+        <button class="btn btn-primary" id="tkSend" data-i18n="tk.send"></button>
+      </div>
+
+      <div id="ticketsList"></div>
+    </div>
+  </main>
+
+  <div id="appFooter"></div>
+
+  <div class="overlay" id="overlay"></div>
+  <aside class="drawer" id="drawer" aria-label="السلة">
+    <div class="drawer-head"><h3>🛒 <span data-i18n="cart.title"></span></h3><button class="btn-icon modal-close" onclick="closeCart()" aria-label="إغلاق">✕</button></div>
+    <div class="drawer-body"></div>
+    <div class="drawer-foot"></div>
+  </aside>
+
+  <div class="modal-backdrop" id="adminModal">
+    <div class="modal admin-login-card">
+      <button class="btn-icon modal-close" data-close="adminModal" aria-label="إغلاق">✕</button>
+      <span class="lock">🛡️</span>
+      <h1 data-i18n="a.login"></h1>
+      <p data-i18n="a.loginSub"></p>
+      <div class="field">
+        <label for="adminPassInput" data-i18n="a.password"></label>
+        <input class="input" id="adminPassInput" type="password" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary btn-lg btn-block" id="adminLoginBtn" data-i18n="a.enter"></button>
+    </div>
+  </div>
+
+  <button id="backTop" aria-label="الصعود للأعلى">↑</button>
+  <div class="toasts"></div>
+
+  <script src="config/data.js"></script>
+  <script src="config/i18n.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/tickets.js"></script>
+</body>
+</html>
