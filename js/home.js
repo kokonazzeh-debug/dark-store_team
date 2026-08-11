@@ -202,7 +202,9 @@ function onGameSelect() {
 }
 
 function initWidget() {
-  document.getElementById("widgetBtn").addEventListener("click", () => {
+  const btn = document.getElementById("widgetBtn");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
     const gameId = document.getElementById("widgetGame").value;
     const playerId = document.getElementById("widgetId").value.trim();
     const idInput = document.getElementById("widgetId");

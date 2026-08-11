@@ -21,7 +21,7 @@ function announcementText() {
 }
 
 function formatPrice(n) {
-  const v = n.toLocaleString(lang === "en" ? "en-US" : "ar-EG");
+  const v = (Number(n) || 0).toLocaleString(lang === "en" ? "en-US" : "ar-EG");
   return `${v} ${currency()}`;
 }
 
@@ -49,10 +49,27 @@ function toggleLang() {
 /* ---------- الأسعار (التعديل من الإدارة) ---------- */
 const PRICE_OVERRIDES = JSON.parse(localStorage.getItem("darc_prices") || "{}");
 
-function getPrice(pkg) { return Number(PRICE_OVERRIDES[pkg.key]) || pkg.price; }
-function getOldPrice(pkg) {
-  if (PRICE_OVERRIDES[pkg.key]) return Math.round(getPrice(pkg) * 1.25);
-  return pkg.oldPrice;
+function pkgFromKey(key) {
+  const parts = String(key).split("_");
+  const gameId = parts[0];
+  const amount = Number(parts[1]);
+  const pkgs = getPackages(gameId);
+  return pkgs.find((p) => p.amount === amount);
+}
+
+function getPrice(ref) {
+  const key = typeof ref === "string" ? ref : ref.key;
+  const override = Number(PRICE_OVERRIDES[key]);
+  if (override) return override;
+  const pkg = pkgFromKey(key);
+  return pkg ? pkg.price : 0;
+}
+
+function getOldPrice(ref) {
+  const key = typeof ref === "string" ? ref : ref.key;
+  if (PRICE_OVERRIDES[key]) return Math.round(getPrice(key) * 1.25);
+  const pkg = pkgFromKey(key);
+  return pkg ? pkg.oldPrice : 0;
 }
 function pkgKey(gameId, amount) { return gameId + "_" + amount; }
 function pkgOff(pkg) {
@@ -186,13 +203,32 @@ function openAccount() {
 
 /* ---------- الإدارة المخفية ---------- */
 function openAdminGate() {
-  const pass = prompt(t("admin.gate") || "أدخل كلمة مرور الإدارة:");
+  const m = document.getElementById("adminModal");
+  if (m) {
+    m.classList.add("open");
+    const inp = document.getElementById("adminPassInput");
+    if (inp) { inp.value = ""; setTimeout(() => inp.focus(), 60); }
+    return;
+  }
+  const pass = prompt(t("admin.gate"));
   if (pass === null) return;
   if (pass === adminPass()) {
     sessionStorage.setItem("darc_admin_ok", "1");
     window.location.href = "admin.html";
   } else {
-    showToast("كلمة المرور غير صحيحة", "err");
+    showToast(t("admin.wrong"), "err");
+  }
+}
+
+function tryAdminLogin() {
+  const pass = document.getElementById("adminPassInput").value;
+  if (pass === adminPass()) {
+    sessionStorage.setItem("darc_admin_ok", "1");
+    window.location.href = "admin.html";
+  } else {
+    showToast(t("admin.wrong"), "err");
+    document.getElementById("adminPassInput").value = "";
+    document.getElementById("adminPassInput").focus();
   }
 }
 
@@ -221,6 +257,13 @@ function bindGlobalEvents() {
 
     const dot = e.target.closest("#adminDot");
     if (dot) openAdminGate();
+
+    const adminBtn = e.target.closest("#adminLoginBtn");
+    if (adminBtn) tryAdminLogin();
+  });
+
+  document.getElementById("adminPassInput")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") tryAdminLogin();
   });
 
   document.getElementById("langBtn")?.addEventListener("click", toggleLang);

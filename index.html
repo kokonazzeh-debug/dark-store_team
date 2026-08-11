@@ -252,6 +252,21 @@
     </div>
   </div>
 
+  <!-- مودال دخول الإدارة -->
+  <div class="modal-overlay" id="adminModal">
+    <div class="modal admin-login">
+      <button class="btn-icon modal-close" data-close="adminModal">✕</button>
+      <span class="lock">🛡️</span>
+      <h1 data-i18n="admin.login">تسجيل دخول الإدارة</h1>
+      <p data-i18n="admin.loginSub">هذه المنطقة مخصصة للمسؤول فقط</p>
+      <div class="form-group">
+        <label data-i18n="admin.password">كلمة المرور</label>
+        <input id="adminPassInput" type="password" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary btn-lg" style="width:100%" id="adminLoginBtn" data-i18n="admin.enter">دخول</button>
+    </div>
+  </div>
+
   <button id="backTop" aria-label="الصعود للأعلى">↑</button>
   <div class="toasts"></div>
 
