@@ -16,6 +16,11 @@ const SETTINGS = {
   flashEndHours: 8,
   flashEndMinutes: 24,
   flashEndSeconds: 45,
+  heroImages: [
+    "https://picsum.photos/seed/heroone/1600/900",
+    "https://picsum.photos/seed/herotwo/1600/900",
+    "https://picsum.photos/seed/herothree/1600/900",
+  ],
 };
 
 const CATEGORIES = [
@@ -27,20 +32,20 @@ const CATEGORIES = [
   { id: "services", icon: "🛠️", i18n: "cat.services" },
 ];
 
-/* الألعاب: كل لعبة ليها تدرّج لوني خاص للكارت */
+/* الألعاب: كل لعبة ليها تدرّج لوني خاص + صورة توضيحية (عدّل img لأي رابط) */
 const GAMES = [
-  { id: "pubg", icon: "🪖", i18n: "game.pubg", rating: 4.8, players: "1M+", popular: true, new: false, cats: ["popular", "topup"], c1: "#ffb300", c2: "#ff7b00" },
-  { id: "freefire", icon: "🔥", i18n: "game.freefire", rating: 4.7, players: "2M+", popular: true, new: false, cats: ["popular", "topup"], c1: "#ff5f2e", c2: "#d9296b" },
-  { id: "mlbb", icon: "🏹", i18n: "game.mlbb", rating: 4.6, players: "800K+", popular: true, new: false, cats: ["popular", "topup"], c1: "#38bdf8", c2: "#2563eb" },
-  { id: "codm", icon: "🎯", i18n: "game.codm", rating: 4.5, players: "600K+", popular: true, new: false, cats: ["popular", "topup"], c1: "#8b5cf6", c2: "#4c1d95" },
-  { id: "coc", icon: "🏰", i18n: "game.coc", rating: 4.9, players: "700K+", popular: true, new: false, cats: ["popular", "cards"], c1: "#f59e0b", c2: "#b45309" },
-  { id: "hok", icon: "👑", i18n: "game.hok", rating: 4.7, players: "500K+", popular: true, new: false, cats: ["popular", "topup"], c1: "#f472b6", c2: "#be185d" },
-  { id: "genshin", icon: "🧭", i18n: "game.genshin", rating: 4.6, players: "400K+", popular: false, new: true, cats: ["new", "topup"], c1: "#2dd4bf", c2: "#0e7490" },
-  { id: "fcm", icon: "⚽", i18n: "game.fcm", rating: 4.4, players: "350K+", popular: false, new: true, cats: ["new", "topup"], c1: "#22c55e", c2: "#15803d" },
-  { id: "roblox", icon: "🧱", i18n: "game.roblox", rating: 4.5, players: "900K+", popular: false, new: false, cats: ["cards", "services"], c1: "#fb7185", c2: "#be123c" },
-  { id: "royale", icon: "👑", i18n: "game.royale", rating: 4.6, players: "300K+", popular: false, new: false, cats: ["cards"], c1: "#a78bfa", c2: "#6d28d9" },
-  { id: "motos", icon: "🏍️", i18n: "game.motos", rating: 4.3, players: "250K+", popular: false, new: false, cats: ["topup", "services"], c1: "#f97316", c2: "#c2410c" },
-  { id: "brawl", icon: "💥", i18n: "game.brawl", rating: 4.5, players: "200K+", popular: false, new: false, cats: ["new", "services"], c1: "#eab308", c2: "#a16207" },
+  { id: "pubg", icon: "🪖", i18n: "game.pubg", rating: 4.8, players: "1M+", popular: true, new: false, cats: ["popular", "topup"], c1: "#ffb300", c2: "#ff7b00", img: "https://picsum.photos/seed/pubgbanner/640/420" },
+  { id: "freefire", icon: "🔥", i18n: "game.freefire", rating: 4.7, players: "2M+", popular: true, new: false, cats: ["popular", "topup"], c1: "#ff5f2e", c2: "#d9296b", img: "https://picsum.photos/seed/firebanner/640/420" },
+  { id: "mlbb", icon: "🏹", i18n: "game.mlbb", rating: 4.6, players: "800K+", popular: true, new: false, cats: ["popular", "topup"], c1: "#38bdf8", c2: "#2563eb", img: "https://picsum.photos/seed/legendbanner/640/420" },
+  { id: "codm", icon: "🎯", i18n: "game.codm", rating: 4.5, players: "600K+", popular: true, new: false, cats: ["popular", "topup"], c1: "#8b5cf6", c2: "#4c1d95", img: "https://picsum.photos/seed/codbanner/640/420" },
+  { id: "coc", icon: "🏰", i18n: "game.coc", rating: 4.9, players: "700K+", popular: true, new: false, cats: ["popular", "cards"], c1: "#f59e0b", c2: "#b45309", img: "https://picsum.photos/seed/clanbanner/640/420" },
+  { id: "hok", icon: "👑", i18n: "game.hok", rating: 4.7, players: "500K+", popular: true, new: false, cats: ["popular", "topup"], c1: "#f472b6", c2: "#be185d", img: "https://picsum.photos/seed/kingsbanner/640/420" },
+  { id: "genshin", icon: "🧭", i18n: "game.genshin", rating: 4.6, players: "400K+", popular: false, new: true, cats: ["new", "topup"], c1: "#2dd4bf", c2: "#0e7490", img: "https://picsum.photos/seed/genshinbanner/640/420" },
+  { id: "fcm", icon: "⚽", i18n: "game.fcm", rating: 4.4, players: "350K+", popular: false, new: true, cats: ["new", "topup"], c1: "#22c55e", c2: "#15803d", img: "https://picsum.photos/seed/fcbanner/640/420" },
+  { id: "roblox", icon: "🧱", i18n: "game.roblox", rating: 4.5, players: "900K+", popular: false, new: false, cats: ["cards", "services"], c1: "#fb7185", c2: "#be123c", img: "https://picsum.photos/seed/robloxbanner/640/420" },
+  { id: "royale", icon: "👑", i18n: "game.royale", rating: 4.6, players: "300K+", popular: false, new: false, cats: ["cards"], c1: "#a78bfa", c2: "#6d28d9", img: "https://picsum.photos/seed/royalebanner/640/420" },
+  { id: "motos", icon: "🏍️", i18n: "game.motos", rating: 4.3, players: "250K+", popular: false, new: false, cats: ["topup", "services"], c1: "#f97316", c2: "#c2410c", img: "https://picsum.photos/seed/motosbanner/640/420" },
+  { id: "brawl", icon: "💥", i18n: "game.brawl", rating: 4.5, players: "200K+", popular: false, new: false, cats: ["new", "services"], c1: "#eab308", c2: "#a16207", img: "https://picsum.photos/seed/brawlbanner/640/420" },
 ];
 
 /* الباقات: amount + price + oldPrice + flash (عرض فلاش) */
@@ -113,10 +118,10 @@ const PACKAGES = {
 };
 
 const NEWS = [
-  { i18n: "news.n1", date: "2026-08-10" },
-  { i18n: "news.n2", date: "2026-08-08" },
-  { i18n: "news.n3", date: "2026-08-05" },
-  { i18n: "news.n4", date: "2026-08-01" },
+  { i18n: "news.n1", date: "2026-08-10", img: "https://picsum.photos/seed/newsone/120/120" },
+  { i18n: "news.n2", date: "2026-08-08", img: "https://picsum.photos/seed/newstwo/120/120" },
+  { i18n: "news.n3", date: "2026-08-05", img: "https://picsum.photos/seed/newsthree/120/120" },
+  { i18n: "news.n4", date: "2026-08-01", img: "https://picsum.photos/seed/newsfour/120/120" },
 ];
 
 const FAQ = [

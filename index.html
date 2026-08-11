@@ -54,7 +54,7 @@
   <!-- الألعاب الأكثر شيوعاً -->
   <section class="section" id="games">
     <div class="container">
-      <div class="section-head">
+      <div class="section-head reveal">
         <div>
           <span class="kick" data-i18n="nav.games">الألعاب</span>
           <h2 data-i18n="games.title">الألعاب الأكثر شيوعاً</h2>
@@ -62,14 +62,14 @@
         </div>
       </div>
       <div class="cat-tabs" id="catTabs"></div>
-      <div class="games-grid" id="gamesGrid"></div>
+      <div class="games-grid reveal" id="gamesGrid"></div>
     </div>
   </section>
 
   <!-- عروض خاصة -->
   <section class="section" id="flash">
     <div class="container">
-      <div class="flash-head">
+      <div class="flash-head reveal">
         <div class="flash-title">
           <span class="bolt">⚡</span>
           <div>
@@ -90,10 +90,10 @@
   <!-- شحن سريع -->
   <section class="section">
     <div class="container">
-      <div class="widget" id="topupWidget">
+      <div class="widget reveal" id="topupWidget">
         <div class="widget-grid">
           <div class="widget-visual">
-            <span class="wemoji">🎮</span>
+            <div class="wimg"><img src="https://picsum.photos/seed/widgetimg/600/400" alt="" loading="lazy" onerror="this.remove()"><span class="wemoji">🎮</span></div>
             <h3 data-i18n="widget.title">شحن سريع ⚡</h3>
             <p data-i18n="widget.sub">اختر اللعبة، اكتب معرفك، واشحن خلال ثوانٍ</p>
           </div>
@@ -127,7 +127,7 @@
           <p class="sub" data-i18n="why.sub">الوجهة الأولى لشحن الألعاب في مصر</p>
         </div>
       </div>
-      <div class="why-grid">
+      <div class="why-grid reveal">
         <div class="why-card"><span class="wicon">🛡️</span><b data-i18n="why.1t">ثقة وحماية</b><p data-i18n="why.1d">تسجيل جميع الطلبات وحماية بياناتك بالكامل</p></div>
         <div class="why-card"><span class="wicon">⚡</span><b data-i18n="why.2t">تسليم فوري</b><p data-i18n="why.2d">شحن يوصلك خلال دقائق بعد تأكيد الدفع</p></div>
         <div class="why-card"><span class="wicon">💳</span><b data-i18n="why.3t">طرق دفع متعددة</b><p data-i18n="why.3d">كاش، كارت بنكي، محافظ إلكترونية</p></div>
@@ -147,7 +147,7 @@
           <p class="sub" data-i18n="how.sub">شحن لعبتك في 5 خطوات بسيطة</p>
         </div>
       </div>
-      <div class="steps">
+      <div class="steps reveal">
         <div class="step"><span class="snum">1</span><span class="sicon">🎮</span><b data-i18n="how.1t">اختر اللعبة</b><p data-i18n="how.1d">حدد اللعبة اللي عايز تشحنها</p></div>
         <div class="step"><span class="snum">2</span><span class="sicon">📦</span><b data-i18n="how.2t">اختر الكمية</b><p data-i18n="how.2d">اختر الباقة المناسبة لك</p></div>
         <div class="step"><span class="snum">3</span><span class="sicon">💳</span><b data-i18n="how.3t">اختر طريقة الدفع</b><p data-i18n="how.3d">كاش أو كارت أو محفظة</p></div>
@@ -160,7 +160,7 @@
   <!-- الأخبار + FAQ -->
   <section class="section" id="news">
     <div class="container">
-      <div class="news-grid">
+      <div class="news-grid reveal">
         <div>
           <div class="section-head" style="margin-bottom:18px">
             <div>
@@ -229,7 +229,7 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <span>© <span id="year"></span> دارك ستور. <span data-i18n="footer.rights">جميع الحقوق محفوظة</span>. <span id="adminDot" class="hidden-admin-dot">.</span></span>
+        <span>© <span id="year"></span> دارك ستور. <span data-i18n="footer.rights">جميع الحقوق محفوظة</span> <button class="admin-shield" id="adminDot" aria-label="Admin">🛡️</button></span>
         <span data-i18n="footer.made">صُنع بحب 💙</span>
       </div>
     </div>

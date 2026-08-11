@@ -9,15 +9,16 @@ let sliderTimer = null;
 /* ---------- السلايدر ---------- */
 function renderSlider() {
   const slides = [
-    { cls: "slide-1", emoji: "🪖", title: t("hero.s1.title"), sub: t("hero.s1.sub"), cta: t("hero.s1.cta"), go: "#topupWidget" },
-    { cls: "slide-2", emoji: "🔥", title: t("hero.s2.title"), sub: t("hero.s2.sub"), cta: t("hero.s2.cta"), go: "#flash" },
-    { cls: "slide-3", emoji: "🚀", title: t("hero.s3.title"), sub: t("hero.s3.sub"), cta: t("hero.s3.cta"), go: "#topupWidget" },
+    { cls: "slide-1", emoji: "🪖", title: t("hero.s1.title"), sub: t("hero.s1.sub"), cta: t("hero.s1.cta"), go: "#topupWidget", img: SETTINGS.heroImages[0] },
+    { cls: "slide-2", emoji: "🔥", title: t("hero.s2.title"), sub: t("hero.s2.sub"), cta: t("hero.s2.cta"), go: "#flash", img: SETTINGS.heroImages[1] },
+    { cls: "slide-3", emoji: "🚀", title: t("hero.s3.title"), sub: t("hero.s3.sub"), cta: t("hero.s3.cta"), go: "#topupWidget", img: SETTINGS.heroImages[2] },
   ];
   const el = document.getElementById("slider");
   el.innerHTML = `
     <button class="slider-arrow prev">‹</button>
     ${slides.map((s, i) => `
       <div class="slide ${s.cls} ${i === 0 ? "active" : ""}">
+        <div class="slide-bg"><img src="${s.img}" alt="" loading="${i === 0 ? "eager" : "lazy"}"></div>
         <div class="slide-content">
           <span class="slide-tag">🎮 ${t("nav.games")}</span>
           <h1>${s.title}</h1>
@@ -85,6 +86,8 @@ function renderGames() {
     return `
     <div class="game-card ${g.new ? "new" : ""}">
       <div class="game-banner" style="background:linear-gradient(135deg,${g.c1},${g.c2})">
+        <div class="gb-img"><img src="${g.img}" alt="${t(g.i18n)}" loading="lazy" onerror="this.parentElement.remove()"></div>
+        <div class="gb-overlay"></div>
         <span class="game-rate">⭐ ${g.rating}</span>
         <span class="gemoji">${g.icon}</span>
         <h3>${t(g.i18n)}</h3>
@@ -222,7 +225,7 @@ function renderNews() {
   const list = document.getElementById("newsList");
   list.innerHTML = NEWS.map((n) => `
     <div class="news-item">
-      <span class="nicon">📢</span>
+      <img class="nimg" src="${n.img}" alt="" loading="lazy" onerror="this.remove()">
       <div>
         <b>${t(n.i18n)}</b>
         <span>📅 ${new Date(n.date).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US")}</span>
@@ -262,6 +265,7 @@ function renderAll() {
   renderNews();
   renderFaq();
   renderCart();
+  initReveal();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
